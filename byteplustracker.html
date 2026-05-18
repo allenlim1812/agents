@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BytePlus Partnership Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f7f7f5;
+    --bg-tertiary: #f0efe8;
+    --text: #1a1a18;
+    --text-secondary: #6b6b67;
+    --border: rgba(0,0,0,0.12);
+    --border-secondary: rgba(0,0,0,0.2);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg-secondary: #242422;
+      --bg-tertiary: #2c2c2a;
+      --text: #f0efe8;
+      --text-secondary: #9a9a96;
+      --border: rgba(255,255,255,0.1);
+      --border-secondary: rgba(255,255,255,0.2);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: linear-gradient(135deg, #1a6ef5, #0a3fa0);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px; letter-spacing: -0.5px;
+  }
+  .header-title { font-weight: 500; font-size: 15px; }
+  .header-sub { font-size: 12px; color: var(--text-secondary); }
+
+  /* API key banner */
+  .api-banner {
+    background: #FAEEDA;
+    border-bottom: 0.5px solid #FAC775;
+    padding: 10px 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #854F0B;
+  }
+  .api-banner.hidden { display: none; }
+  .api-banner input {
+    flex: 1; max-width: 380px;
+    padding: 6px 10px; border-radius: var(--radius-md);
+    border: 0.5px solid #FAC775;
+    background: #fff8ee; color: #412402;
+    font-size: 13px; font-family: monospace;
+  }
+  .api-banner button {
+    padding: 6px 14px; border-radius: var(--radius-md);
+    border: 0.5px solid #854F0B;
+    background: #854F0B; color: white;
+    font-size: 12px; cursor: pointer;
+  }
+
+  /* Main */
+  .main { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex; gap: 10px; align-items: center;
+    margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .toolbar-search {
+    flex: 1; min-width: 200px;
+    padding: 8px 12px; border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg); color: var(--text);
+    font-size: 13px;
+  }
+  .toolbar-search:focus { outline: none; border-color: #1a6ef5; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg); color: var(--text);
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn-primary {
+    background: var(--text); color: var(--bg);
+    border-color: var(--text);
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px; margin-bottom: 1.25rem;
+  }
+  .stat-card {
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius-md); padding: 12px 16px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-value { font-size: 22px; font-weight: 500; }
+
+  /* Table */
+  .table-wrap {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: var(--bg-secondary);
+    padding: 10px 14px; text-align: left;
+    font-weight: 500; font-size: 11px; color: var(--text-secondary);
+    border-bottom: 0.5px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-secondary); }
+  td { padding: 10px 14px; vertical-align: top; line-height: 1.5; color: var(--text-secondary); }
+  td.td-num { width: 40px; text-align: center; color: var(--text-secondary); font-size: 11px; }
+  td.td-company { color: var(--text); font-weight: 500; font-size: 13px; width: 100px; }
+  td.td-actions { width: 56px; }
+
+  /* Badges */
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: var(--radius-md); font-weight: 500;
+  }
+  .badge-high { background: #EAF3DE; color: #3B6D11; }
+  .badge-medium { background: #FAEEDA; color: #854F0B; }
+  .badge-low { background: #FAECE7; color: #993C1D; }
+  .badge-none { background: var(--bg-secondary); color: var(--text-secondary); }
+  .badge-contacted { background: #E6F1FB; color: #185FA5; }
+  .badge-inprogress { background: #EEEDFE; color: #534AB7; }
+  .badge-closed { background: #EAF3DE; color: #3B6D11; }
+
+  .actions-cell { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-secondary); font-size: 16px; padding: 2px;
+    display: inline-flex; align-items: center;
+  }
+  .icon-btn:hover { color: var(--text); }
+  .row-actions { display: flex; gap: 4px; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .modal {
+    background: var(--bg);
+    border: 0.5px solid var(--border-secondary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    width: 580px; max-width: 95vw;
+    max-height: 88vh; overflow-y: auto;
+  }
+  .modal-title { font-size: 16px; font-weight: 500; margin-bottom: 1.25rem; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .field input, .field textarea, .field select {
+    width: 100%; font-size: 13px;
+    padding: 8px 10px; border-radius: var(--radius-md);
+    border: 0.5px solid var(--border-secondary);
+    background: var(--bg); color: var(--text);
+    resize: vertical; font-family: inherit;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none; border-color: #1a6ef5;
+  }
+  .field textarea { min-height: 72px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+
+  /* AI result */
+  .ai-box {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem; margin-bottom: 1rem;
+  }
+  .ai-box-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+  .ai-row { display: flex; gap: 8px; }
+  .ai-row input { flex: 1; }
+  .ai-result { margin-top: 10px; font-size: 12px; line-height: 1.6; }
+  .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-secondary); font-weight: 500;
+    margin: 10px 0 4px;
+  }
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border-secondary);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Contact cards */
+  .contact-card {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .contact-name { font-weight: 500; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+  .contact-title { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .contact-why { font-size: 12px; color: var(--text-secondary); font-style: italic; margin-bottom: 6px; }
+  .contact-link { font-size: 11px; color: #185FA5; word-break: break-all; text-decoration: none; }
+  .contact-link:hover { text-decoration: underline; }
+
+  .empty { text-align: center; padding: 3rem; color: var(--text-secondary); font-size: 13px; }
+  .error-text { color: #A32D2D; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">BP</div>
+    <div>
+      <div class="header-title">Partnership Tracker</div>
+      <div class="header-sub">BytePlus</div>
+    </div>
+  </div>
+  <button class="btn btn-sm" onclick="toggleApiPanel()"><i class="ti ti-key"></i> API key</button>
+</header>
+
+<div class="api-banner" id="api-banner">
+  <i class="ti ti-alert-circle"></i>
+  <span>Enter your Anthropic API key to enable AI research and contact finding:</span>
+  <input type="password" id="api-key-input" placeholder="sk-ant-...">
+  <button onclick="saveApiKey()">Save</button>
+  <button onclick="document.getElementById('api-banner').classList.add('hidden')" style="background:transparent;border:none;cursor:pointer;color:#854F0B;font-size:13px;">Dismiss</button>
+</div>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="text" class="toolbar-search" id="search" placeholder="Search companies..." oninput="render()">
+    <button class="btn btn-primary" onclick="openEditModal(null)"><i class="ti ti-plus"></i> Add company</button>
+    <button class="btn" onclick="openResearchModal()"><i class="ti ti-sparkles"></i> Research company</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th style="width:100px">Company</th>
+            <th style="width:180px">Overview</th>
+            <th style="width:160px">Relevance to BytePlus</th>
+            <th style="width:160px">Partnership angle</th>
+            <th style="width:80px">Potential</th>
+            <th style="width:120px">Outreach status</th>
+            <th style="width:160px">Next steps / to-dos</th>
+            <th style="width:56px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="modal-container"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let data = JSON.parse(localStorage.getItem("bp_tracker") || "null") || [
+  {
+    id: 1, company: "XBOW",
+    overview: "Autonomous offensive security platform. AI agent swarms pentest at machine speed — hours vs weeks. First AI to reach #1 on HackerOne. 200+ zero-days, zero false positives. $237M raised, $1B+ valuation.",
+    relevance: "Directly addresses security gaps in BytePlus Cloud, ModelArk, and VikingDB. AI-specific vulnerability testing (prompt injection) is an undersold need for BytePlus enterprise customers.",
+    angle: "Co-sell XBOW as a security layer for BytePlus Cloud deployments; mirror the Microsoft Security Copilot integration model; APAC distribution via BytePlus enterprise network.",
+    potential: "high", status: "none",
+    next: "Pitch co-sell bundling with BytePlus Cloud; explore APAC distribution agreement; introduce to AI Startups Accelerator team."
+  },
+  {
+    id: 2, company: "Lindy",
+    overview: "No-code AI agent platform. Users build AI employees in plain English across 5,000+ integrations. Key use cases: email triage, scheduling, lead qualification, voice agents. $53.6M raised.",
+    relevance: "Targets same enterprise buyer as BytePlus Deep Research and Creative Agent. Lindy's agent memory maps onto VikingDB. ModelArk is a natural inference backend candidate.",
+    angle: "ModelArk as inference provider for APAC Lindy deployments; joint AI Startups Accelerator credits bundle; VikingDB integration for persistent agent memory.",
+    potential: "medium", status: "none",
+    next: "Propose ModelArk model placement in Lindy's model selector; co-promotion through AI Startups Accelerator; assess product overlap risk before co-sell."
+  },
+  {
+    id: 3, company: "Bolt.new",
+    overview: "Browser-based AI dev platform generating full-stack code from natural language. 7M+ users, $40M ARR, $700M valuation. Claude as primary coding agent. Deploys to Netlify/Supabase.",
+    relevance: "Bolt's APAC user base needs regional hosting. VikingDB and BytePlus Cloud are natural infrastructure add-ons for AI-powered apps scaffolded on Bolt.",
+    angle: "BytePlus Cloud as a one-click APAC deploy target; ModelArk placement in Bolt's model selector for Asian enterprises; joint credits bundle via AI Startups Accelerator.",
+    potential: "high", status: "none",
+    next: "Propose BytePlus Cloud as deployment integration (analogous to Netlify); negotiate ModelArk placement in model selector for APAC users."
+  }
+];
+let nextId = Math.max(...data.map(d => d.id), 0) + 1;
+
+function save() { localStorage.setItem("bp_tracker", JSON.stringify(data)); }
+
+// ── API Key ──────────────────────────────────────────────────────────────────
+function getApiKey() { return localStorage.getItem("bp_api_key") || ""; }
+function saveApiKey() {
+  const key = document.getElementById("api-key-input").value.trim();
+  if (!key) return;
+  localStorage.setItem("bp_api_key", key);
+  document.getElementById("api-banner").classList.add("hidden");
+}
+function toggleApiPanel() {
+  const b = document.getElementById("api-banner");
+  b.classList.toggle("hidden");
+  if (!b.classList.contains("hidden")) document.getElementById("api-key-input").value = getApiKey();
+}
+
+// ── Check if API key needed on load ──────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  if (getApiKey()) document.getElementById("api-banner").classList.add("hidden");
+  render();
+});
+
+// ── Stats ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const total = data.length;
+  const high = data.filter(d => d.potential === "high").length;
+  const contacted = data.filter(d => d.status !== "none").length;
+  const inprog = data.filter(d => d.status === "inprogress").length;
+  document.getElementById("stats").innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total companies</div><div class="stat-value">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">High potential</div><div class="stat-value" style="color:#3B6D11">${high}</div></div>
+    <div class="stat-card"><div class="stat-label">Outreach started</div><div class="stat-value" style="color:#185FA5">${contacted}</div></div>
+    <div class="stat-card"><div class="stat-label">In progress</div><div class="stat-value" style="color:#534AB7">${inprog}</div></div>`;
+}
+
+// ── Table ────────────────────────────────────────────────────────────────────
+const potLabel = { high: "High", medium: "Medium", low: "Low" };
+const potClass = { high: "badge-high", medium: "badge-medium", low: "badge-low" };
+const statusLabel = { none: "Not contacted", contacted: "Contacted", inprogress: "In progress", closed: "Closed" };
+const statusClass = { none: "badge-none", contacted: "badge-contacted", inprogress: "badge-inprogress", closed: "badge-closed" };
+
+function render() {
+  renderStats();
+  const q = (document.getElementById("search").value || "").toLowerCase();
+  const rows = data.filter(d => !q || d.company.toLowerCase().includes(q) || (d.overview||"").toLowerCase().includes(q));
+  const tbody = document.getElementById("tbody");
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No companies found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map((d, i) => `
+    <tr>
+      <td class="td-num">${i + 1}</td>
+      <td class="td-company">${esc(d.company)}</td>
+      <td>${esc(d.overview)}</td>
+      <td>${esc(d.relevance)}</td>
+      <td>${esc(d.angle)}</td>
+      <td><span class="badge ${potClass[d.potential]}">${potLabel[d.potential]}</span></td>
+      <td>
+        <div class="actions-cell">
+          <span class="badge ${statusClass[d.status]}">${statusLabel[d.status]}</span>
+          <button class="btn btn-sm" onclick="openContactsModal(${d.id})"><i class="ti ti-users"></i> Find contacts</button>
+        </div>
+      </td>
+      <td>${esc(d.next)}</td>
+      <td class="td-actions">
+        <div class="row-actions">
+          <button class="icon-btn" onclick="openEditModal(${d.id})" aria-label="Edit"><i class="ti ti-edit"></i></button>
+          <button class="icon-btn" onclick="deleteRow(${d.id})" aria-label="Delete"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+function esc(str) {
+  return (str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ── Edit Modal ───────────────────────────────────────────────────────────────
+function openEditModal(id) {
+  const item = id ? data.find(d => d.id === id) : null;
+  showModal(`
+    <div class="modal-title">${item ? "Edit company" : "Add company"}</div>
+    <div class="field"><label>Company name</label><input id="f-company" value="${esc(item?.company||"")}"></div>
+    <div class="field"><label>Overview</label><textarea id="f-overview">${esc(item?.overview||"")}</textarea></div>
+    <div class="field"><label>Relevance to BytePlus</label><textarea id="f-relevance">${esc(item?.relevance||"")}</textarea></div>
+    <div class="field"><label>Partnership angle</label><textarea id="f-angle">${esc(item?.angle||"")}</textarea></div>
+    <div class="field"><label>Partnership potential</label>
+      <select id="f-potential">
+        <option value="high" ${item?.potential==="high"?"selected":""}>High</option>
+        <option value="medium" ${item?.potential==="medium"?"selected":""}>Medium</option>
+        <option value="low" ${item?.potential==="low"?"selected":""}>Low</option>
+      </select>
+    </div>
+    <div class="field"><label>Outreach status</label>
+      <select id="f-status">
+        <option value="none" ${item?.status==="none"?"selected":""}>Not contacted</option>
+        <option value="contacted" ${item?.status==="contacted"?"selected":""}>Contacted</option>
+        <option value="inprogress" ${item?.status==="inprogress"?"selected":""}>In progress</option>
+        <option value="closed" ${item?.status==="closed"?"selected":""}>Closed</option>
+      </select>
+    </div>
+    <div class="field"><label>Next steps / to-dos</label><textarea id="f-next">${esc(item?.next||"")}</textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRow(${id||"null"})">Save</button>
+    </div>`);
+}
+
+function saveRow(id) {
+  const company = document.getElementById("f-company").value.trim();
+  if (!company) return;
+  const obj = {
+    company,
+    overview: document.getElementById("f-overview").value.trim(),
+    relevance: document.getElementById("f-relevance").value.trim(),
+    angle: document.getElementById("f-angle").value.trim(),
+    potential: document.getElementById("f-potential").value,
+    status: document.getElementById("f-status").value,
+    next: document.getElementById("f-next").value.trim()
+  };
+  if (id) {
+    const idx = data.findIndex(d => d.id === id);
+    data[idx] = { ...data[idx], ...obj };
+  } else {
+    data.push({ id: nextId++, ...obj });
+  }
+  save(); closeModal(); render();
+}
+
+function deleteRow(id) {
+  if (!confirm("Delete this company?")) return;
+  data = data.filter(d => d.id !== id);
+  save(); render();
+}
+
+// ── Contacts Modal ───────────────────────────────────────────────────────────
+function openContactsModal(id) {
+  const item = data.find(d => d.id === id);
+  showModal(`
+    <div class="modal-title"><i class="ti ti-users" style="vertical-align:-2px;margin-right:6px"></i>Decision-makers — ${esc(item.company)}</div>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:1rem">The AI agent will suggest relevant decision-makers based on public information and provide LinkedIn search queries to find them.</p>
+    <div id="contacts-body">
+      <button class="btn btn-primary" onclick="runContacts(${id})"><i class="ti ti-sparkles"></i> Find contacts</button>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal()">Close</button></div>`);
+}
+
+async function runContacts(id) {
+  const item = data.find(d => d.id === id);
+  const el = document.getElementById("contacts-body");
+  const key = getApiKey();
+  if (!key) { el.innerHTML = '<p class="error-text">Please set your Anthropic API key using the button in the top right.</p>'; return; }
+  el.innerHTML = '<span class="spinner"></span> Researching decision-makers for ' + esc(item.company) + '...';
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-calls": "true" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: `You are a partnership research agent for BytePlus (ByteDance's enterprise AI and cloud division). Given a company and its partnership context, identify 8-10 relevant decision-makers to target for partnership outreach. Focus on roles like CEO, CTO, VP Partnerships, VP Business Development, VP Engineering, Head of Platform, CRO, and similar senior roles.
+
+Respond ONLY with a JSON array (no markdown, no backticks) where each item has:
+- name: the person's real name if publicly known, otherwise "Name TBC"
+- title: their role
+- why: one sentence on why they are relevant to a BytePlus partnership
+- linkedin_query: a precise Google search string to find their LinkedIn profile (e.g. "Oege de Moor XBOW CEO site:linkedin.com")`,
+        messages: [{ role: "user", content: `Company: ${item.company}\nOverview: ${item.overview}\nPartnership angle: ${item.angle}\n\nSuggest 8-10 decision-makers to contact for a BytePlus partnership.` }]
+      })
+    });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message);
+    const text = json.content.map(b => b.text || "").join("").replace(/```json|```/g,"").trim();
+    const contacts = JSON.parse(text);
+    el.innerHTML = contacts.map((c, i) => `
+      <div class="contact-card">
+        <div class="contact-name">${i+1}. ${esc(c.name)}</div>
+        <div class="contact-title">${esc(c.title)}</div>
+        <div class="contact-why">${esc(c.why)}</div>
+        <a class="contact-link" href="https://www.google.com/search?q=${encodeURIComponent(c.linkedin_query)}" target="_blank" rel="noopener">
+          <i class="ti ti-brand-linkedin" style="font-size:12px;vertical-align:-1px"></i> Search LinkedIn →
+        </a>
+      </div>`).join("");
+  } catch(e) {
+    el.innerHTML = `<p class="error-text">Error: ${esc(e.message)}. Check your API key and try again.</p>`;
+  }
+}
+
+// ── Research Modal ───────────────────────────────────────────────────────────
+let researchedData = null;
+
+function openResearchModal() {
+  researchedData = null;
+  showModal(`
+    <div class="modal-title"><i class="ti ti-sparkles" style="vertical-align:-2px;margin-right:6px"></i>Research a company</div>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:1rem">Enter a company name and the AI agent will research it and suggest partnership potential, relevance, and next steps for BytePlus.</p>
+    <div class="ai-box">
+      <div class="ai-box-title">Company to research</div>
+      <div class="ai-row">
+        <input class="toolbar-search" type="text" id="ai-company-input" placeholder="e.g. Vercel, Databricks, Supabase...">
+        <button class="btn btn-primary" onclick="runResearch()"><i class="ti ti-search"></i> Research</button>
+      </div>
+      <div id="ai-result" class="ai-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" id="add-researched-btn" style="display:none" onclick="addResearched()"><i class="ti ti-plus"></i> Add to tracker</button>
+    </div>`);
+}
+
+async function runResearch() {
+  const company = document.getElementById("ai-company-input").value.trim();
+  if (!company) return;
+  const key = getApiKey();
+  const resultEl = document.getElementById("ai-result");
+  if (!key) { resultEl.innerHTML = '<p class="error-text">Please set your Anthropic API key using the button in the top right.</p>'; return; }
+  resultEl.innerHTML = `<span class="spinner"></span> Researching ${esc(company)}...`;
+  document.getElementById("add-researched-btn").style.display = "none";
+  researchedData = null;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-calls": "true" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: `You are a partnership research agent for BytePlus (ByteDance's enterprise AI and cloud division). BytePlus products include ModelArk (LLM gateway), VikingDB (vector DB), SeedDance/Seedream (video/image generation), Deep Research platform, AI Knowledge Search, Creative Agent, BytePlus Cloud (compute, storage, load balancing), and an AI Startups Accelerator.
+
+Respond ONLY with a JSON object (no markdown, no backticks) with these exact fields:
+- overview: 2-3 sentence summary of what the company does, its scale, and funding
+- relevance: 2-3 sentences on which BytePlus products are relevant and why
+- angle: 2-3 concrete partnership angles BytePlus could pursue
+- potential: one of "high", "medium", or "low"
+- next_steps: 2-3 concrete next steps BytePlus should take`,
+        messages: [{ role: "user", content: `Research for BytePlus partnership potential: ${company}` }]
+      })
+    });
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message);
+    const text = json.content.map(b => b.text || "").join("").replace(/```json|```/g,"").trim();
+    const parsed = JSON.parse(text);
+    researchedData = { company, ...parsed };
+    const potCol = { high: "#3B6D11", medium: "#854F0B", low: "#993C1D" };
+    const potLab = { high: "High", medium: "Medium", low: "Low" };
+    resultEl.innerHTML = `
+      <div style="margin-bottom:8px">
+        <strong style="font-size:14px">${esc(company)}</strong>
+        &nbsp;<span style="font-size:12px;font-weight:500;color:${potCol[parsed.potential]}">${potLab[parsed.potential]} potential</span>
+      </div>
+      <div class="section-label">Overview</div><div>${esc(parsed.overview)}</div>
+      <div class="section-label">Relevance to BytePlus</div><div>${esc(parsed.relevance)}</div>
+      <div class="section-label">Partnership angle</div><div>${esc(parsed.angle)}</div>
+      <div class="section-label">Next steps</div><div>${esc(parsed.next_steps)}</div>`;
+    document.getElementById("add-researched-btn").style.display = "inline-flex";
+  } catch(e) {
+    resultEl.innerHTML = `<p class="error-text">Error: ${esc(e.message)}. Check your API key and try again.</p>`;
+  }
+}
+
+function addResearched() {
+  if (!researchedData) return;
+  data.push({
+    id: nextId++,
+    company: researchedData.company,
+    overview: researchedData.overview,
+    relevance: researchedData.relevance,
+    angle: researchedData.angle,
+    potential: researchedData.potential,
+    status: "none",
+    next: researchedData.next_steps
+  });
+  save(); closeModal(); render();
+}
+
+// ── Modal helpers ────────────────────────────────────────────────────────────
+function showModal(html) {
+  const c = document.getElementById("modal-container");
+  c.innerHTML = `<div class="modal-backdrop" onclick="handleBackdropClick(event)"><div class="modal">${html}</div></div>`;
+}
+function handleBackdropClick(e) { if (e.target.classList.contains("modal-backdrop")) closeModal(); }
+function closeModal() { document.getElementById("modal-container").innerHTML = ""; researchedData = null; }
+</script>
+</body>
+</html>
